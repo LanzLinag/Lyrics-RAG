@@ -21,11 +21,12 @@ def get_model():
         _model = SentenceTransformer(EMBED_MODEL)
     return _model
 
-def get_conn():
+def get_conn(register=True):
     conn = psycopg.connect(
         host=os.getenv("DB_HOST"), port=os.getenv("DB_PORT"),
         dbname=os.getenv("DB_NAME"), user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
     )
-    register_vector(conn)
+    if register:
+        register_vector(conn)
     return conn
