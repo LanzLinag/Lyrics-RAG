@@ -43,11 +43,6 @@ All commands run from the `server/` folder unless noted.
 6. **Build the database** (several minutes, one time): `python -m src.ingest`
 7. **Start the app:** `streamlit run app.py`
 
-**Troubleshooting**
-- *Port 5433 already in use:* change the left number in `"5433:5432"` in `docker-compose.yml` and set the same value as `DB_PORT` in `.env`.
-- *Low on RAM or Ollama is slow:* set a smaller model in `src/config.py` (`LLM_MODEL`) and pull it with Ollama.
-- *Ingest hangs:* close any other program connected to the database, such as an open notebook.
-
 ## Repo layout
 - `server/src/` - application code (ingest, search, RAG)
 - `server/app.py` - Streamlit interface
