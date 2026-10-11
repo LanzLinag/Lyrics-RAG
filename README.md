@@ -28,8 +28,8 @@ Docker Desktop and Ollama must be running. About 16 GB of RAM is recommended for
 ## Run it
 All commands run from the `server/` folder unless noted.
 
-1. **Get the dataset** (not included, for copyright reasons): TODO: add the dataset source link.
-   Save the CSV as `server/data/billboard_top_100_1946_2022_lyrics-edited.csv`.
+1. **Get the dataset** (not included, for copyright reasons): [Billboard's Top 100 Songs 1946 to 2022 (lyrics) on Kaggle](https://www.kaggle.com/datasets/rhaamrozenberg/billboards-top-100-song-1946-to-2022-lyrics).
+   Save the CSV as `server/data/billboard_top_100_1946_2022_lyrics.csv`.
 2. **Create a virtual environment and install packages**
 ```
    cd server
@@ -38,4 +38,36 @@ All commands run from the `server/` folder unless noted.
    pip install -r requirements.txt
 ```
 3. **Create your settings file:** copy `.env.example` to `.env`.
-4. **Start
+4. **Start the database:** `docker compose up -d`
+5. **Download the LLM:** `ollama pull llama3.1:8b`
+6. **Build the database** (several minutes, one time): `python -m src.ingest`
+7. **Start the app:** `streamlit run app.py`
+
+**Troubleshooting**
+- *Port 5433 already in use:* change the left number in `"5433:5432"` in `docker-compose.yml` and set the same value as `DB_PORT` in `.env`.
+- *Low on RAM or Ollama is slow:* set a smaller model in `src/config.py` (`LLM_MODEL`) and pull it with Ollama.
+- *Ingest hangs:* close any other program connected to the database, such as an open notebook.
+
+## Repo layout
+- `server/src/` - application code (ingest, search, RAG)
+- `server/app.py` - Streamlit interface
+- `server/notebooks/` - exploration notebooks (outputs cleared); `src/` is the source of truth
+
+## Design choices
+- **pgvector:** vectors sit next to metadata, so year filtering is plain SQL
+- **Chunking:** the embedding model reads about 256 tokens, so songs are split into overlapping chunks
+- **Hybrid tools:** counting and exact-word queries go to SQL/pandas, not the LLM
+
+## What I tried and learned
+- **Retrieval vs. generation:** I checked the retrieved sources first to see which stage was failing
+- **Model swap:** moving from llama3.2 to llama3.1:8b fixed a misdescribed song, but the sources were identical, so retrieval was unchanged
+- **Counting:** an LLM gave counts of 5, 7, and 8 for the word "darling" across runs, so counts are computed with code
+- **Whole-dataset questions:** RAG correctly refuses questions like "most used lyrics" because it only sees a few chunks
+
+## Limitations
+- A small local LLM sometimes includes loosely related songs (for example, a song about music in an answer about distance)
+- Retrieval is imperfect on vague, subjective themes, and similarity scores of about 0.5 to 0.6 are typical
+- Answers depend on only the top retrieved songs, so broad trend questions are weak
+
+## Related
+[Billboard Lyrics Analysis](https://github.com/LanzLinag/Lyrics-Analysis): word-frequency analysis of the same dataset
