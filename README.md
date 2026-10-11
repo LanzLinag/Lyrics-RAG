@@ -61,7 +61,6 @@ All commands run from the `server/` folder unless noted.
 ## What I tried and learned
 - **Retrieval vs. generation:** I checked the retrieved sources first to see which stage was failing
 - **Model swap:** moving from llama3.2 to llama3.1:8b fixed a misdescribed song, but the sources were identical, so retrieval was unchanged
-- **Counting:** an LLM gave counts of 5, 7, and 8 for the word "darling" across runs, so counts are computed with code
 - **Whole-dataset questions:** RAG correctly refuses questions like "most used lyrics" because it only sees a few chunks
 
 ## Limitations
