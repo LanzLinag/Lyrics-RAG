@@ -1,0 +1,8 @@
+pandas
+sentence-transformers
+psycopg[binary]
+pgvector
+ollama
+python-dotenv
+jupyter
+ipykernel
