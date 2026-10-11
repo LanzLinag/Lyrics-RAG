@@ -1,12 +1,15 @@
 import ast
 import pandas as pd
+from pgvector.psycopg import register_vector
 
 from .config import DATA_DIR, get_conn, get_model
 
-RAW_CSV = DATA_DIR / "billboard_top_100_1946_2022_lyrics-edited.csv"
+RAW_CSV = DATA_DIR / "billboard_top_100_1946_2022_lyrics.csv"
 
 def load_songs():
+    DATA_DIR.mkdir(exist_ok=True)
     df = pd.read_csv(RAW_CSV)
+    df = df.dropna(subset=["Lyrics", "Artist Names", "Song"])
     df["artist"] = df["Artist Names"].apply(lambda s: ", ".join(ast.literal_eval(s)))
     df["lyrics"] = df["Lyrics"].apply(lambda s: " ".join(ast.literal_eval(s)))
     df["title"] = df["Song"].str.replace(
@@ -49,7 +52,11 @@ def main():
     vectors = model.encode([r[6] for r in rows], batch_size=64,
                            show_progress_bar=True, normalize_embeddings=True)
 
-    conn = get_conn()
+    conn = get_conn(register=False)
+    conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    conn.commit()
+    register_vector(conn)
+
     conn.execute("DROP TABLE IF EXISTS chunks")
     conn.execute("""
         CREATE TABLE chunks (
